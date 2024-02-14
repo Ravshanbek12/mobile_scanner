@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 void main() {
   runApp(const MainApp());
@@ -17,9 +18,33 @@ class _MainAppState extends State<MainApp> with SingleTickerProviderStateMixin {
   late AnimationController animationController;
 
   late Tween<double> animation;
+  late WebViewController controller;
 
   @override
   void initState() {
+
+    controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setBackgroundColor(const Color(0x00000000))
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onProgress: (int progress) {
+            // Update loading bar.
+          },
+          onPageStarted: (String url) {},
+          onPageFinished: (String url) {},
+          onWebResourceError: (WebResourceError error) {},
+          onNavigationRequest: (NavigationRequest request) {
+            if (request.url.startsWith('https://www.youtube.com/')) {
+              return NavigationDecision.prevent;
+            }
+            return NavigationDecision.navigate;
+          },
+        ),
+      )
+      ..loadRequest(Uri.parse('https://poki.com/'));
+
+
     animationController = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 250))
       ..addStatusListener((status) {
@@ -37,27 +62,28 @@ class _MainAppState extends State<MainApp> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: Scaffold(
-          backgroundColor: Colors.white12,
-          body: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            // mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(
-                height: 200,
-              ),
-              Center(
-                child: CustomPaint(
-                  painter:
-                      PackManPainter(mouthExtend: animationController.value),
-                  // child: CustomPaint(
-                  //   painter: PackManPainter(mouthExtend: 0.6),
-                ),
-              ),
-            ],
-          ),
-        ));
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: Colors.white12,
+        body: WebViewWidget(controller: controller,)
+        // Column(
+        //   crossAxisAlignment: CrossAxisAlignment.center,
+        //   // mainAxisAlignment: MainAxisAlignment.center,
+        //   children: [
+        //     const SizedBox(
+        //       height: 200,
+        //     ),
+        //     Center(
+        //       child: CustomPaint(
+        //         painter: PackManPainter(mouthExtend: animationController.value),
+        //         // child: CustomPaint(
+        //         //   painter: PackManPainter(mouthExtend: 0.6),
+        //       ),
+        //     ),
+        //   ],
+        // ),
+      ),
+    );
     // LayoutBuilder(builder: (context, constraints) {
     //   print(constraints.maxHeight);
     //   print(constraints.minHeight);
@@ -192,7 +218,6 @@ class PackManPainter extends CustomPainter {
 
     paint1.color = Colors.black;
 
-
     // canvas.drawArc(
     //     Rect.fromCenter(
     //         center: const Offset(0, 60), width: 100, height: 100),
@@ -204,16 +229,14 @@ class PackManPainter extends CustomPainter {
     canvas.drawCircle(const Offset(-20, 55), 4, paint1);
     canvas.drawCircle(const Offset(20, 55), 4, paint1);
     canvas.drawArc(
-            Rect.fromCenter(
-                center: const Offset(0, 140), width: 100, height: 100),
-            1.4,
-            2*pi,
-            false,
-            paint);
+        Rect.fromCenter(center: const Offset(0, 140), width: 100, height: 100),
+        1.4,
+        2 * pi,
+        false,
+        paint);
     canvas.drawCircle(const Offset(0, 120), 4, paint1);
     canvas.drawCircle(const Offset(0, 145), 4, paint1);
     canvas.drawCircle(const Offset(0, 220), 65, paint);
-
   }
 
   @override
